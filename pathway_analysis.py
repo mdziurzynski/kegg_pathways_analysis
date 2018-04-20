@@ -124,13 +124,13 @@ if __name__ == "__main__":
     #pathway_ids_dict = get_kegg_pathways(pid_ko_dict)
     print("done.")
     print(pathways)
-    return    
+    
 
-    print("Building pathway graphs...\n")
-    with Pool(processes=numer_of_workers) as pool:
-        multiple_results = [pool.apply_async(build_pathway_graph, (pathway_id, enzyme_list))
-            for (pathway_id, enzyme_list) in pathway_ids_dict]
+    # print("Building pathway graphs...\n")
+    # with Pool(processes=numer_of_workers) as pool:
+    #     multiple_results = [pool.apply_async(build_pathway_graph, (pathway_id, enzyme_list))
+    #         for (pathway_id, enzyme_list) in pathway_ids_dict]
 
-        graphs_list = [res.get() for res in multiple_results]
-    print("done.")
-    print(graphs_list)
+    #     graphs_list = [res.get() for res in multiple_results]
+    # print("done.")
+    # print(graphs_list)
