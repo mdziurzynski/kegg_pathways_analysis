@@ -55,7 +55,7 @@ def build_pathway_graph(pathway_id, enzyme_list):
         entry1_elem = root.find("./entry[@id='{0}']".format(relation.attrib['entry1']))
         entry1_elem = root.find("./entry[@id='{0}']".format(relation.attrib['entry2']))
         for record1 in entry1_elem.attrib['name'].split():
-            if !record1.startswith('ko:'):
+            if not record1.startswith('ko:'):
                 continue
             for record2 in entry2_elem.attrib['name'].split():
                 if !record2.startswith('ko:'):
