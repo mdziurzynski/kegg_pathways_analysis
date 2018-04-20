@@ -58,7 +58,7 @@ def build_pathway_graph(pathway_id, enzyme_list):
             if not record1.startswith('ko:'):
                 continue
             for record2 in entry2_elem.attrib['name'].split():
-                if !record2.startswith('ko:'):
+                if not record2.startswith('ko:'):
                     continue
                 G.add_node(record1.split(':')[-1], present=record1.split(':')[-1] in enzyme_list)
                 G.add_node(record2.split(':')[-1], present=record2.split(':')[-1] in enzyme_list)
