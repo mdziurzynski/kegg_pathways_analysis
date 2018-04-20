@@ -116,17 +116,14 @@ if __name__ == "__main__":
 
     unique_enzyme_kos = list(set(pid_ko_dict.values()))
     print("Number of enzymes to process: {0}".format(len(unique_enzyme_kos)))
+    with Pool(processes=numer_of_workers) as pool:
+        multiple_results = [pool.apply_async(get_kegg_pathways, (enzyme_id,))
+            for enzyme_id in unique_enzyme_kos]
+        pathways = [res.get() for res in multiple_results]
 
-    get_kegg_pathways(unique_enzyme_kos[0])
-
-    # with Pool(processes=numer_of_workers) as pool:
-    #     multiple_results = [pool.apply_async(get_kegg_pathways, (enzyme_id,))
-    #         for enzyme_id in unique_enzyme_kos]
-    #     pathways = [res.get() for res in multiple_results]
-
-    # #pathway_ids_dict = get_kegg_pathways(pid_ko_dict)
-    # print("done.")
-    # print(pathways)
+    #pathway_ids_dict = get_kegg_pathways(pid_ko_dict)
+    print("done.")
+    print(pathways)
     
 
     # print("Building pathway graphs...\n")
