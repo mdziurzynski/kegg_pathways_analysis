@@ -22,28 +22,49 @@ def parse_text_output(file_path):
 
 
 # 2. Using rest kegg api, get all pathways that the KO's are involved in
-def  get_kegg_pathways(pid_ko_dict):
+def  get_kegg_pathways(enzyme_id):
     """
     Get pathways with more than one found enzyme.
     @return: dict of pathway names in 'ko' standard as keys and 
         list of enzyme ids present in the pathway 
     """
-    unique_enzyme_kos = set(pid_ko_dict.values())
     res = {}
-    for enzyme in unique_enzyme_kos:
-        pathway_data = urllib.request.urlopen("http://rest.kegg.jp/link/pathway/{0}".format(enzyme)).read()
-        pathway_data = str(pathway_data, 'utf-8')
-        for pathway in pathway_data.split('\n'):
-            if pathway:
-                ko_id, pathway_id = pathway.split()
-                if pathway_id.startswith('ko'):
-                    if pathway_id.split(':')[1] in res:
-                        res[pathway_id.split(':')[1]] = res[pathway_id.split(':')[1]].append(enzyme)
-                    else:
-                        res[pathway_id.split(':')[1]] = [enzyme]
+    pathway_data = urllib.request.urlopen("http://rest.kegg.jp/link/pathway/{0}".format(enzyme_id)).read()
+    pathway_data = str(pathway_data, 'utf-8')
+    for pathway in pathway_data.split('\n'):
+        if pathway:
+            ko_id, pathway_id = pathway.split()
+            if pathway_id.startswith('ko'):
+                if pathway_id.split(':')[1] in res:
+                    res[pathway_id.split(':')[1]] = res[pathway_id.split(':')[1]].append(enzyme_id)
+                else:
+                    res[pathway_id.split(':')[1]] = [enzyme_id]
 
-    res = {k: v for k, v in res.items() if len(v) > 1} 
-    return res
+    return res  
+
+
+# def  get_kegg_pathways(pid_ko_dict):
+#     """
+#     Get pathways with more than one found enzyme.
+#     @return: dict of pathway names in 'ko' standard as keys and 
+#         list of enzyme ids present in the pathway 
+#     """
+#     unique_enzyme_kos = set(pid_ko_dict.values())
+#     res = {}
+#     for enzyme in unique_enzyme_kos:
+#         pathway_data = urllib.request.urlopen("http://rest.kegg.jp/link/pathway/{0}".format(enzyme)).read()
+#         pathway_data = str(pathway_data, 'utf-8')
+#         for pathway in pathway_data.split('\n'):
+#             if pathway:
+#                 ko_id, pathway_id = pathway.split()
+#                 if pathway_id.startswith('ko'):
+#                     if pathway_id.split(':')[1] in res:
+#                         res[pathway_id.split(':')[1]] = res[pathway_id.split(':')[1]].append(enzyme)
+#                     else:
+#                         res[pathway_id.split(':')[1]] = [enzyme]
+
+#     res = {k: v for k, v in res.items() if len(v) > 1} 
+#     return res
 
 # 3. Download kegg xml files for pathways from point 2.
 # 4. Extract KO links from kegg xml files and build graphs from them
@@ -86,13 +107,23 @@ if __name__ == "__main__":
         parser.print_help()
         sys.exit(1)
 
+    numer_of_workers = cpu_count() - 1
+
     print("Parsing KAAS output...\n")
     pid_ko_dict = parse_text_output(args.i)
     print('done.\n')
     print("Building pathways dict...\n")
-    pathway_ids_dict = get_kegg_pathways(pid_ko_dict)
+
+    unique_enzyme_kos = set(pid_ko_dict.values())
+    with Pool(processes=numer_of_workers) as pool:
+        multiple_results = [pool.apply_async(get_kegg_pathways, (enzyme_id))
+            for enzyme_id in unique_enzyme_kos]
+        pathways = [res.get() for res in multiple_results]
+
+    #pathway_ids_dict = get_kegg_pathways(pid_ko_dict)
     print("done.")
-    numer_of_workers = cpu_count() - 1
+    print(pathways)
+    return    
 
     print("Building pathway graphs...\n")
     with Pool(processes=numer_of_workers) as pool:
