@@ -86,14 +86,19 @@ if __name__ == "__main__":
         parser.print_help()
         sys.exit(1)
 
+    print("Parsing KAAS output...\n")
     pid_ko_dict = parse_text_output(args.i)
+    print('done.\n')
+    print("Building pathways dict...\n")
     pathway_ids_dict = get_kegg_pathways(pid_ko_dict)
-
+    print("done.")
     numer_of_workers = cpu_count() - 1
 
+    print("Building pathway graphs...\n")
     with Pool(processes=numer_of_workers) as pool:
         multiple_results = [pool.apply_async(build_pathway_graph, (pathway_id, enzyme_list))
             for (pathway_id, enzyme_list) in pathway_ids_dict]
 
         graphs_list = [res.get() for res in multiple_results]
+    print("done.")
     print(graphs_list)
